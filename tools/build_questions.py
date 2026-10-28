@@ -43,6 +43,9 @@ def main(src):
         old = {norm(q["question"]): q["id"] for q in prev["questions"]}
     next_num = max([int(i[1:]) for i in old.values()] + [0]) + 1
 
+    used = set()
+    # старые тексты, которые и сейчас есть в документе дословно, для нечёткого сопоставления не годятся
+    exact_now = {norm(unescape(l[4:].strip())) for l in md.split("\n") if l.startswith("### ")}
     sections, questions = [], []
     sec = q = None
     buf = []
@@ -87,8 +90,19 @@ def main(src):
             text = unescape(line[4:].strip())
             qid = old.get(norm(text))
             if not qid:
+                # вопрос дополнили новой частью — старый текст входит в новый:
+                # сохраняем id, чтобы у студентов не сбросились отметки
+                nt = norm(text)
+                for ot, oid in old.items():
+                    if len(ot) >= 15 and ot in nt and oid not in used and ot not in exact_now:
+                        qid = oid
+                        break
+            if qid in used:
+                qid = None
+            if not qid:
                 qid = f"q{next_num:03d}"
                 next_num += 1
+            used.add(qid)
             q = {"id": qid, "section": sec["id"], "type": sec["type"], "question": text}
         elif sec is not None:
             buf.append(line)
