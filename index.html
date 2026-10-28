@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QA-собеседования: пул вопросов</title>
+  <meta name="description" content="Вопросы с реальных собеседований QA с эталонными ответами и режимом тренировки.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f5d50'/%3E%3Ctext x='16' y='22' font-size='16' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'%3EQA%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">QA</span>
+        <div>
+          <h1>Пул вопросов с собеседований QA</h1>
+          <p class="sub" id="subtitle">Загрузка…</p>
+        </div>
+      </div>
+      <nav class="tabs" role="tablist">
+        <button class="tab" role="tab" data-view="browse" aria-selected="true">Все вопросы</button>
+        <button class="tab" role="tab" data-view="train" aria-selected="false">Тренировка</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="progress" aria-label="Прогресс">
+      <div class="progress-bar" aria-hidden="true"><span class="pb-known"></span><span class="pb-repeat"></span></div>
+      <p class="progress-text" id="progressText"></p>
+    </section>
+
+    <!-- ПРОСМОТР -->
+    <section id="view-browse" class="view">
+      <div class="toolbar">
+        <label class="search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <input id="search" type="search" placeholder="Поиск по вопросам и ответам" autocomplete="off">
+        </label>
+        <div class="filters">
+          <select id="fSection" aria-label="Раздел"></select>
+          <select id="fType" aria-label="Тип вопроса">
+            <option value="">Все типы</option>
+            <option value="theory">Теория</option>
+            <option value="practice">Практические задачи</option>
+            <option value="situational">Ситуационные</option>
+            <option value="personal">О себе и опыте</option>
+            <option value="company">Вопросы к компании</option>
+          </select>
+          <select id="fFreq" aria-label="Частота">
+            <option value="1">Любая частота</option>
+            <option value="2">Встречался 2+ раза</option>
+            <option value="3">3+ раза</option>
+            <option value="5">5+ раз</option>
+          </select>
+          <select id="fStatus" aria-label="Мой статус">
+            <option value="">Любой статус</option>
+            <option value="none">Не отмечены</option>
+            <option value="repeat">Повторить</option>
+            <option value="known">Знаю</option>
+          </select>
+          <select id="fSort" aria-label="Сортировка">
+            <option value="section">По разделам</option>
+            <option value="freq">Самые частые сверху</option>
+          </select>
+        </div>
+        <div class="toolbar-foot">
+          <span id="found" class="found"></span>
+          <label class="switch"><input type="checkbox" id="openAll"> <span>Показать все ответы</span></label>
+        </div>
+      </div>
+      <div id="list" class="list"></div>
+      <p id="empty" class="empty" hidden>Ничего не нашлось. Попробуй изменить фильтры.</p>
+    </section>
+
+    <!-- ТРЕНИРОВКА -->
+    <section id="view-train" class="view" hidden>
+      <div id="trainSetup" class="panel">
+        <h2>Тренировка</h2>
+        <p class="muted">Вопрос — сначала ответь сам вслух, потом открой эталон и честно отметь: знаю или нужно повторить.</p>
+        <div class="setup-grid">
+          <label>Раздел
+            <select id="tSection"></select>
+          </label>
+          <label>Какие вопросы
+            <select id="tPool">
+              <option value="all">Все</option>
+              <option value="unknown">Кроме тех, что «знаю»</option>
+              <option value="repeat">Только «повторить»</option>
+            </select>
+          </label>
+          <label>Порядок
+            <select id="tOrder">
+              <option value="freq">Сначала самые частые</option>
+              <option value="random">Случайный</option>
+            </select>
+          </label>
+          <label>Сколько вопросов
+            <select id="tCount">
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="40">40</option>
+              <option value="0">Все</option>
+            </select>
+          </label>
+        </div>
+        <p id="tAvail" class="muted small"></p>
+        <button id="tStart" class="btn primary">Начать</button>
+      </div>
+
+      <div id="trainCard" class="panel flash" hidden>
+        <div class="flash-head">
+          <span id="fcCounter" class="counter"></span>
+          <button id="fcExit" class="btn ghost small">Завершить</button>
+        </div>
+        <div class="flash-meta" id="fcMeta"></div>
+        <h2 id="fcQuestion" class="flash-q"></h2>
+        <button id="fcReveal" class="btn primary wide">Показать ответ <kbd>Пробел</kbd></button>
+        <div id="fcAnswerWrap" hidden>
+          <div class="answer-label" id="fcLabel"></div>
+          <div id="fcAnswer" class="answer"></div>
+          <div class="flash-actions">
+            <button id="fcRepeat" class="btn mark-repeat">Повторить <kbd>←</kbd></button>
+            <button id="fcKnown" class="btn mark-known">Знаю <kbd>→</kbd></button>
+          </div>
+        </div>
+      </div>
+
+      <div id="trainDone" class="panel" hidden>
+        <h2>Готово</h2>
+        <p id="doneText"></p>
+        <div class="row">
+          <button id="dRepeat" class="btn primary">Прогнать «повторить» ещё раз</button>
+          <button id="dNew" class="btn ghost">Новая тренировка</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap foot">
+    <p>Вопросы собраны с реальных собеседований учеников. Частота — на скольких собесах встретился вопрос. Отметки «знаю / повторить» хранятся только в этом браузере.</p>
+    <button id="reset" class="linkish">Сбросить мои отметки</button>
+  </footer>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>
