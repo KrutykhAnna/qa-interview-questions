@@ -53,6 +53,7 @@
     const st = progress[q.id];
     return `<span class="chip ${freqClass(q.frequency)}" title="На скольких собесах встретился">${freqText(q.frequency)}</span>`
       + `<span class="chip">${esc(SECTIONS[q.section].title)}</span>`
+      + (q.condition ? `<span class="chip cond">${q.images ? "условие и скриншот" : "есть условие"}</span>` : "")
       + (st === "known" ? `<span class="chip st-known">знаю</span>` : "")
       + (st === "repeat" ? `<span class="chip st-repeat">повторить</span>` : "");
   }
@@ -66,7 +67,7 @@
   function init(data) {
     DATA = data;
     data.sections.forEach((s) => (SECTIONS[s.id] = s));
-    data.questions.forEach((q) => (q._search = norm(q.question + " " + q.answer)));
+    data.questions.forEach((q) => (q._search = norm(q.question + " " + (q.condition || "") + " " + q.answer)));
     const d = new Date(data.updated);
     $("#subtitle").textContent = `${data.questions.length} ${plural(data.questions.length, "вопрос", "вопроса", "вопросов")} · обновлено ${d.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}`;
 
@@ -127,14 +128,30 @@
           <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
           <div class="q-main"><div class="q-text">${esc(q.question)}</div><div class="q-meta">${chips(q)}</div></div>
         </summary>
-        <div class="card-body">${open ? bodyHTML(q) : ""}</div>
+        <div class="card-body">${open ? bodyHTML(q, true) : ""}</div>
       </details>
     </article>`;
   }
-  function bodyHTML(q) {
+  function conditionHTML(q) {
+    if (!q.condition) return "";
+    const imgs = (q.images || []).map((im) =>
+      `<a class="shot" href="${esc(im.src)}" target="_blank" rel="noopener" title="Открыть в полном размере">
+         <img src="${esc(im.src)}" alt="${esc(im.alt || "")}" loading="lazy"></a>`).join("");
+    return `<div class="condition">
+        <div class="answer-label cond-label">Условие задачи</div>
+        <div class="answer">${q.condition_html}</div>
+        ${imgs ? `<div class="shots">${imgs}</div><p class="shots-hint">Нажми на скриншот, чтобы открыть его в полном размере</p>` : ""}
+      </div>`;
+  }
+  function bodyHTML(q, showAnswer) {
     const st = progress[q.id];
-    return `<div class="answer-label">${ANSWER_LABEL[q.type] || "Ответ"}</div>
-      <div class="answer">${md(q)}</div>
+    const hide = q.condition && !showAnswer;
+    return `${conditionHTML(q)}
+      ${hide ? `<button class="btn primary reveal" data-reveal>Показать ответ</button>` : ""}
+      <div class="answer-block"${hide ? " hidden" : ""}>
+        <div class="answer-label">${ANSWER_LABEL[q.type] || "Ответ"}</div>
+        <div class="answer">${md(q)}</div>
+      </div>
       <div class="card-actions">
         <button class="btn small mark-repeat" data-mark="repeat" aria-pressed="${st === "repeat"}">Повторить</button>
         <button class="btn small mark-known" data-mark="known" aria-pressed="${st === "known"}">Знаю</button>
@@ -186,7 +203,7 @@
       const body = det.querySelector(".card-body");
       if (!body.innerHTML.trim()) {
         const q = DATA.questions.find((x) => x.id === det.parentElement.id);
-        body.innerHTML = bodyHTML(q);
+        body.innerHTML = bodyHTML(q, false);
       }
     }, true);
 
@@ -194,7 +211,10 @@
       const btn = e.target.closest("button");
       if (!btn) return;
       const id = btn.closest(".card").id;
-      if (btn.dataset.mark) {
+      if (btn.hasAttribute("data-reveal")) {
+        btn.closest(".card-body").querySelector(".answer-block").hidden = false;
+        btn.remove();
+      } else if (btn.dataset.mark) {
         setMark(id, btn.dataset.mark);
         refreshCard(id);
       } else if (btn.hasAttribute("data-copy")) {
@@ -281,6 +301,7 @@
     $("#fcCounter").textContent = `${pos + 1} / ${deck.length}`;
     $("#fcMeta").innerHTML = chips(q) + `<span class="chip">${TYPE_LABEL[q.type]}</span>`;
     $("#fcQuestion").textContent = q.question;
+    $("#fcCondition").innerHTML = conditionHTML(q);
     $("#fcLabel").textContent = ANSWER_LABEL[q.type] || "Эталонный ответ";
     $("#fcAnswer").innerHTML = "";
     $("#fcAnswerWrap").hidden = true;

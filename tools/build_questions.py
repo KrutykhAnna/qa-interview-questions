@@ -15,7 +15,9 @@ import markdown  # pip install markdown
 MD_EXT = ["fenced_code", "tables", "sane_lists"]
 
 def to_html(text):
-    return markdown.markdown(text, extensions=MD_EXT)
+    html = markdown.markdown(text, extensions=MD_EXT)
+    # широкие таблицы прокручиваются по горизонтали, а не ломают вёрстку на телефоне
+    return html.replace("<table>", '<div class="tablewrap"><table>').replace("</table>", "</table></div>")
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "data" / "questions.json"
@@ -52,6 +54,15 @@ def main(src):
             m = re.search(r"\*\*Частота:\*\*\s*(\d+)", body)
             q["frequency"] = int(m.group(1)) if m else 1
             body = re.sub(r"^\*\*Частота:\*\*.*$", "", body, count=1, flags=re.M).strip()
+            # «**Условие:** … **Ответ:** …» — условие показывается до ответа
+            if body.startswith("**Условие:**"):
+                parts = re.split(r"^\*\*Ответ:\*\*\s*$", body, maxsplit=1, flags=re.M)
+                if len(parts) == 2:
+                    cond = parts[0][len("**Условие:**"):].strip()
+                    cond = cond[:1].upper() + cond[1:]
+                    q["condition"] = cond
+                    q["condition_html"] = to_html(cond)
+                    body = parts[1].strip()
             q["answer"] = body
             q["answer_html"] = to_html(body)
             questions.append(q)
@@ -82,6 +93,13 @@ def main(src):
         elif sec is not None:
             buf.append(line)
     flush()
+
+    media_file = ROOT / "data" / "media.json"
+    media = json.loads(media_file.read_text(encoding="utf-8")) if media_file.exists() else {}
+    for q in questions:
+        imgs = media.get(q["question"])
+        if imgs:
+            q["images"] = imgs
 
     data = {
         "updated": datetime.date.today().isoformat(),

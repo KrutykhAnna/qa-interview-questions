@@ -130,10 +130,23 @@ select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .answer code { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .88em; background: var(--code-bg); padding: 1px 5px; border-radius: 5px; }
 .answer pre { background: var(--code-bg); padding: 12px 14px; border-radius: 10px; overflow-x: auto; margin: 0 0 10px; }
 .answer pre code { background: none; padding: 0; font-size: 13.5px; }
-.answer table { border-collapse: collapse; width: 100%; margin-bottom: 10px; font-size: 14px; display: block; overflow-x: auto; }
+.answer table { border-collapse: collapse; width: 100%; margin-bottom: 10px; font-size: 14px; }
+.answer .tablewrap { overflow-x: auto; }
 .answer th, .answer td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; }
 .answer > :last-child { margin-bottom: 0; }
 .card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+
+/* Условие задачи */
+.condition { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+.cond-label { color: var(--ink-2); }
+.chip.cond { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.shots { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.shot { display: block; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; max-width: 100%; }
+.shot img { display: block; max-width: 100%; max-height: 360px; width: auto; height: auto; }
+.shots-hint { font-size: 13px; color: var(--ink-2); margin: 6px 0 0; }
+.btn.reveal { margin-bottom: 4px; }
+.answer-block + .card-actions, .btn.reveal + .answer-block[hidden] + .card-actions { margin-top: 14px; }
+#fcCondition .condition { margin: 0 0 22px; }
 
 /* Кнопки */
 .btn { border: 1px solid var(--line); background: var(--surface-2); padding: 9px 16px; border-radius: 10px; cursor: pointer; font-weight: 500; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; justify-content: center; }
@@ -180,3 +193,8 @@ kbd { font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 1px 5p
   .flash-q { font-size: 19px; }
   .filters { grid-template-columns: 1fr 1fr; }
 }
+
+/* таблицы в условиях: не сжимать, а прокручивать */
+.answer .tablewrap { overflow-x: auto; margin-bottom: 10px; -webkit-overflow-scrolling: touch; }
+.answer .tablewrap table { margin-bottom: 0; width: auto; min-width: 100%; }
+.answer th, .answer td { white-space: nowrap; overflow-wrap: normal; }
