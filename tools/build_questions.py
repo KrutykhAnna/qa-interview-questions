@@ -94,7 +94,9 @@ def main(src):
                 # сохраняем id, чтобы у студентов не сбросились отметки
                 nt = norm(text)
                 for ot, oid in old.items():
-                    if len(ot) >= 15 and ot in nt and oid not in used and ot not in exact_now:
+                    # старый текст входит в новый (дописали) или новый в старый (сократили)
+                    if (len(ot) >= 15 and len(nt) >= 15 and (ot in nt or nt in ot)
+                            and oid not in used and ot not in exact_now):
                         qid = oid
                         break
             if qid in used:
